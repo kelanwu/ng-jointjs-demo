@@ -30,7 +30,12 @@
             "styles": [
               "src/styles.scss"
             ],
-            "scripts": []
+            "scripts": [],
+            "allowedCommonJsDependencies": [
+              "backbone",
+              "jquery",
+              "lodash"
+            ]
           },
           "configurations": {
             "production": {

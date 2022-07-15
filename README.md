@@ -32,27 +32,48 @@ ng new PROJECT-NAME
 
 Then, run `npm install`.
 
+JointJS internally depends on backbone, jquery, and lodash, which are CommonJS or AMD modules. The Angular CLI outputs warnings if it detects that, see [here](https://angular.io/guide/build#configuring-commonjs-dependencies) for more info. To disable these warnings, add the module names to `allowedCommonJsDependencies` option in the `build` options located in `angular.json` file.
+
+```json
+"build": {
+  "builder": "@angular-devkit/build-angular:browser",
+  "options": {
+     "allowedCommonJsDependencies": [
+        "backbone",
+        "jquery",
+        "lodash"
+     ]
+     ...
+   }
+   ...
+},
+```
+
 ### Build the "Hello World!"
-Go over [JointJS Hello World!](https://resources.jointjs.com/tutorial/hello-world) to understand how JointJS works first. Below is just using Angular to implement the same thing.
+Go over [JointJS Hello World!](https://resources.jointjs.com/tutorial/hello-world) to understand how JointJS works first. The following is just doing the same thing with Angular. The source code can be found [here](https://github.com/kelanwu/ng-jointjs-demo/tree/master/src/app/demos/hello-world).
 
 Create a new component or use the `app.component`.
 
 Update the component template (.html) with the following:
+
 ```html
 <div #myholder></div>
 ```
 
 In the component class file (.ts), import the JointJS `dia`, and `shapes` namespace.
+
 ```TypeScript
 import { dia, shapes } from 'jointjs';
 ```
 
 After that, inside the class add the following code to get the `myholder` element:
+
 ```TypeScript
 @ViewChild('myholder', { static: true }) myholder!: ElementRef;
 ```
 
 Next, define a graph and a paper, create two rectangular elements, and create one link to connect the elements in the `ngOnInit` lifecycle hook:
+
 ```TypeScript
   ngOnInit(): void {
     const namespace = shapes;
