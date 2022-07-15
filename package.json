@@ -5,7 +5,7 @@
     "ng": "ng",
     "start": "ng serve --open",
     "build": "ng build",
-    "build:gh-pages": "ng build --deployUrl /ng-jointjs-demo/",
+    "build:gh-pages": "ng build --base-href /ng-jointjs-demo/",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },
