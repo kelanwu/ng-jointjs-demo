@@ -1,9 +1,6 @@
 name: Build and Deploy to Github Pages
 
-on: 
-  push:
-    branches:
-      - "master"
+on: workflow_dispatch
 
 env:
   NODE_VERSION: '14.x'  # set this to the node version to use
