@@ -1,27 +1,96 @@
 # NgJointjsDemo
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 14.0.6.
+Tutorial, Demos for using JointJS (V3.5.5, not JointJS+) in Angular (V14) apps.
 
-## Development server
+## Tutorial for using JointJS in Angular
+The [JointJS Tutorials](https://resources.jointjs.com/tutorial) only has an example for integrating JointJS+ (commercial extension to JointJS) into an Angular app. This tutorial will show you how to add JointJS to an Angular project and build the "Hello World!" demo.
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
+### Create an Angular project
+Make sure Angular CLI is installed and run:
 
-## Code scaffolding
+```Bash
+ng new PROJECT-NAME
+```
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+### Add JointJS to the Angular project
+`cd` to the project root, update `dependencies` and `devDependencies` in the `package.json` file with the following:
 
-## Build
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+```json
+"dependencies": {
+    ...
+    "jointjs": "^3.5.5",
+    ...
+},
+"devDependencies": {
+    ...
+    "@types/backbone": "^1.4.15",
+    "@types/jquery": "^3.5.14",
+    ...
+}
+```
 
-## Running unit tests
+Then, run `npm install`.
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+### Build the "Hello World!"
+Go over [JointJS Hello World!](https://resources.jointjs.com/tutorial/hello-world) to understand how JointJS works first. Below is just using Angular to implement the same thing.
 
-## Running end-to-end tests
+Create a new component or use the `app.component`.
 
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
+Update the component template (.html) with the following:
+```html
+<div #myholder></div>
+```
 
-## Further help
+In the component class file (.ts), import the JointJS `dia`, and `shapes` namespace.
+```TypeScript
+import { dia, shapes } from 'jointjs';
+```
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
+After that, inside the class add the following code to get the `myholder` element:
+```TypeScript
+@ViewChild('myholder', { static: true }) myholder!: ElementRef;
+```
+
+Next, define a graph and a paper, create two rectangular elements, and create one link to connect the elements in the `ngOnInit` lifecycle hook:
+```TypeScript
+  ngOnInit(): void {
+    const namespace = shapes;
+
+    const graph = new dia.Graph({}, { cellNamespace: namespace });
+
+    const paper = new dia.Paper({
+      el: this.myholder.nativeElement,
+      model: graph,
+      width: 600,
+      height: 100,
+      gridSize: 1,
+      cellViewNamespace: namespace,
+    });
+
+    const rect = new shapes.standard.Rectangle();
+    rect.position(100, 30);
+    rect.resize(100, 40);
+    rect.attr({
+      body: {
+        fill: 'blue'
+      },
+      label: {
+        text: 'Hello',
+        fill: 'white'
+      }
+    });
+    rect.addTo(graph);
+
+    const rect2 = rect.clone();
+    rect2.translate(300, 0);
+    rect2.attr('label/text', 'World!');
+    rect2.addTo(graph);
+
+    const link = new shapes.standard.Link();
+    link.source(rect);
+    link.target(rect2);
+    link.addTo(graph);
+  }
+```
+

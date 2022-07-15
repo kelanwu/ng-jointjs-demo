@@ -1,0 +1,18 @@
+.app-navbar {
+  padding: 16px;
+
+  a:not(:last-child) {
+    margin-right: 8px;
+  }
+}
+
+.main-content {
+  padding: 16px;
+  height: calc(100% - 50.5px - 32px);
+}
+
+.demos-container {
+  border: 1px lightgrey solid;
+  padding: 16px;
+  height: calc(100% - 32px);
+}
