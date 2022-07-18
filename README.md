@@ -32,6 +32,11 @@ ng new PROJECT-NAME
 
 Then, run `npm install`.
 
+Import the pre-built stylesheet in `style.scss`
+```Scss
+@import '~jointjs/dist/joint.min.css';
+```
+
 JointJS internally depends on backbone, jquery, and lodash, which are CommonJS or AMD modules. The Angular CLI outputs warnings if it detects that, see [here](https://angular.io/guide/build#configuring-commonjs-dependencies) for more info. To disable these warnings, add the module names to `allowedCommonJsDependencies` option in the `build` options located in `angular.json` file.
 
 ```json
@@ -50,7 +55,7 @@ JointJS internally depends on backbone, jquery, and lodash, which are CommonJS o
 ```
 
 ### Build the "Hello World!"
-Go over [JointJS Hello World!](https://resources.jointjs.com/tutorial/hello-world) to understand how JointJS works first. The following is just doing the same thing with Angular. The source code can be found [here](https://github.com/kelanwu/ng-jointjs-demo/tree/master/src/app/demos/hello-world).
+Look at [JointJS Hello World!](https://resources.jointjs.com/tutorial/hello-world) to understand the basic of how JointJS works first. The following is just doing the same thing with Angular. Find [source code](https://github.com/kelanwu/ng-jointjs-demo/tree/master/src/app/demos/hello-world) / [live example](https://kelanwu.github.io/ng-jointjs-demo/).
 
 Create a new component or use the `app.component`.
 
@@ -115,3 +120,4 @@ Next, define a graph and a paper, create two rectangular elements, and create on
   }
 ```
 
+## Demo: UML Class Diagram
