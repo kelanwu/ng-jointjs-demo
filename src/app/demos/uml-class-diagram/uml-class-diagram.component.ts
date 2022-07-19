@@ -24,9 +24,7 @@ export class UmlClassDiagramComponent implements OnInit {
       el: this.paperRef.nativeElement,
       width: '100%',
       height: '100%',
-      background: {
-        color: '#eee'
-      },
+      background: { color: '#eee' },
       gridSize: 1,
       model: graph
     });

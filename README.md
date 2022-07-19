@@ -121,3 +121,9 @@ Next, define a graph and a paper, create two rectangular elements, and create on
 ```
 
 ## Demo: UML Class Diagram
+
+## Demo: Editor
+1. Add node and group dynamically.
+2. Select nodes to make a group.
+3. Drag a node into a group to add it to the group. (embeddingMode)
+4. Drag a node out of a group to remove it from the group. (embeddingMode)

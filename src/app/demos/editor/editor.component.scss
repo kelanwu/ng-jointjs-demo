@@ -1,0 +1,10 @@
+#toolbar {
+  display: flex;
+  height: 24px;
+  margin-bottom: 16px;
+}
+
+#paper {
+  width:  100%;
+  height: calc(100% - 40px);
+}
