@@ -1,13 +1,12 @@
 import { dia } from 'jointjs';
 
-
 export const Group = dia.Element.define('ui.Group', {
   attrs: {
     body: {
       width: 'calc(w)',
       height: 'calc(h)',
-      rx: 10,
-      ry: 10,
+      rx: 8,
+      ry: 8,
       strokeWidth: 2,
       stroke: '#333333',
       strokeDasharray: '4,4,1',
@@ -15,13 +14,19 @@ export const Group = dia.Element.define('ui.Group', {
       pointerEvents: 'none',
     },
     wrapper: {
-      width: 'calc(w-10)',
-      height: 'calc(h-10)',
+      width: 'calc(w)',
+      height: 'calc(h)',
       strokeWidth: 10,
       stroke: 'transparent',
       fill: 'none',
-      transform: 'matrix(1,0,0,1,5,5)',
       pointerEvents: 'stroke',
+    },
+    label: {
+      x: 'calc(0.5*w)',
+      y: 12,
+      textAnchor: 'middle',
+      fontSize: 14,
+      fontWeight: 'bold',
     }
   },
 }, {
@@ -32,6 +37,9 @@ export const Group = dia.Element.define('ui.Group', {
     }, {
       tagName: 'rect',
       selector: 'wrapper',
-    },
+    }, {
+      tagName: 'text',
+      selector: 'label',
+    }
   ]
 });

@@ -8,10 +8,14 @@
 
 html,
 body {
-  height: 100vh;
+  height: 100%;
 }
 
 body {
   margin: 0;
   padding: 0;
+}
+
+p {
+  margin-top: 0;
 }

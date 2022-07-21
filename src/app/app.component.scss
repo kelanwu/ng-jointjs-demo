@@ -1,18 +1,25 @@
-.app-navbar {
-  padding: 16px;
+main {
+  display: flex;
+  height: 100%;
+}
 
-  a:not(:last-child) {
-    margin-right: 8px;
+aside {
+  padding: 16px;
+  min-width: 150px;
+
+  ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
   }
 }
 
-.main-content {
-  padding: 16px;
-  height: calc(100% - 50.5px - 32px);
-}
-
 .demos-container {
-  border: 1px lightgrey solid;
+  position: relative;
+  flex-grow: 1;
+  margin: 16px;
   padding: 16px;
-  height: calc(100% - 32px);
+  border: 1px lightgrey solid;
+  border-radius: 4px;
+  overflow: scroll;
 }

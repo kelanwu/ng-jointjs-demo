@@ -1,13 +1,16 @@
-<header>
-  <nav class="app-navbar">
-    <a routerLink="/">Home</a>
-    <a routerLink="/demos/hello-world">Hello World</a>
-    <a routerLink="/demos/uml-class-diagram">UML Class Diagram</a>
-    <a routerLink="/demos/editor">Editor</a>
-  </nav>
-</header>
+<header></header>
 
-<main class="main-content">
+<main>
+  <aside>
+    <nav>
+      <ul>
+        <li><a routerLink="/">Home</a></li>
+        <li><a routerLink="/demos/hello-world">Hello World</a></li>
+        <li><a routerLink="/demos/uml-class-diagram">UML Class Diagram</a></li>
+        <li><a routerLink="/demos/editor">Editor</a></li>
+      </ul>
+    </nav>
+  </aside>
   <section class="demos-container">
     <router-outlet></router-outlet>
   </section>
