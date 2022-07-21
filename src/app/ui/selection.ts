@@ -76,7 +76,7 @@ export class Selection {
       if (!rect) { return; }
 
       // Filter group and embeded elements
-      const views = this.paper.findViewsInArea(rect).filter(view => ['ui.Group', 'ui.Collapse'].includes(view.model.get('type')) && !view.model.isEmbedded());
+      const views = this.paper.findViewsInArea(rect).filter(view => !['ui.Group', 'ui.Collapse'].includes(view.model.get('type')) && !view.model.isEmbedded());
       if (views.length === 0) { return; }
 
       this.selectionEl.classList.add('selected');
