@@ -1,5 +1,5 @@
 import { dia, elementTools, g } from "jointjs";
-import { Group } from "./group";
+import { Collapse, Group } from "../shapes";
 
 export class Selection {
   private paper: dia.Paper;
@@ -76,7 +76,7 @@ export class Selection {
       if (!rect) { return; }
 
       // Filter group and embeded elements
-      const views = this.paper.findViewsInArea(rect).filter(view => !['ui.Group', 'ui.Collapse'].includes(view.model.get('type')) && !view.model.isEmbedded());
+      const views = this.paper.findViewsInArea(rect).filter(view => ![Group.type, Collapse.type].includes(view.model.get('type')) && !view.model.isEmbedded());
       if (views.length === 0) { return; }
 
       this.selectionEl.classList.add('selected');

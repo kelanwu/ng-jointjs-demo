@@ -2,7 +2,8 @@ import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 
 import { dia, elementTools, shapes } from 'jointjs';
 import { firstValueFrom, timer } from 'rxjs';
-import { Collapse, Group, Selection } from '../../ui'
+import { Collapse, Group } from '../../shapes';
+import { Selection } from '../../ui';
 
 @Component({
   selector: 'app-editor',
@@ -36,39 +37,51 @@ export class EditorComponent implements OnInit {
       gridSize: 1,
       model: this.graph,
       async: true,
+      multiLinks: false,
+      // defaultLink: new Link(),
       // Embedding
       embeddingMode: true,
       frontParentOnly: false,
       validateEmbedding: function (childView, parentView) {
         const parentType = parentView.model.get('type');
         const childType = childView.model.get('type');
-        if (parentType === 'ui.Group' && childType === 'standard.Rectangle') return true;
-        if (parentType === 'ui.Collapse' && childType === 'standard.Rectangle') return true;
+        if (parentType === Group.type && childType === 'standard.Rectangle') return true;
+        if (parentType === Collapse.type && childType === 'standard.Rectangle') return true;
         return false;
       },
       // a callback function that is used to determine whether a given view should be shown in an async paper
       viewport: function (view) {
         const model: dia.Cell = view.model;
 
-        if (model.getAncestors().some((ancestor) => ancestor.get('type') === 'ui.Collapse'
-          && (ancestor as any).isCollapsed())) {
+        if (model.getAncestors().some((ancestor) => ancestor.get('type') === Collapse.type
+          && (ancestor as Collapse).isCollapsed())) {
           return false;
         }
 
         return true;
       }
     }).on('blank:pointerdown', (evt, x, y) => {
-      this.paper.hideTools();
       selection.startSelecting(evt);
-    }).on('cell:pointerdown', (cellView) => {
-      this.paper.hideTools();
-      if (cellView.hasTools()) {
-        cellView.showTools();
-      }
+    }).on('element:mouseenter', (elementView) => {
+      const remove = new elementTools.Remove({
+        x: 0,
+        y: 0,
+      });
+      const connect = new elementTools.Connect({
+        x: '100%',
+        y: '50%',
+        magnet: 'body'
+      });
+      const elementToolsView = new dia.ToolsView({
+        tools: [remove, connect]
+      });
+      elementView.addTools(elementToolsView);
+    }).on('element:mouseleave', (elementView) => {
+      elementView.removeTools();
     }).on('element:button:pointerclick', (view: dia.CellView) => {
       const type = view.model.get('type');
-      if (type === 'ui.Collapse') {
-        (view.model as any).toggle();
+      if (type === Collapse.type) {
+        (view.model as Collapse).toggle();
       }
     });
 
@@ -97,50 +110,38 @@ export class EditorComponent implements OnInit {
       }
     });
 
-    const removeButton = new elementTools.Remove();
-    const elementToolsView = new dia.ToolsView({
-      tools: [removeButton]
-    });
-
     this.graph.addCell(rect);
-    rect.findView(this.paper).addTools(elementToolsView);
   }
 
   addGroup() {
-    const group = new Group();
     this.groupPosition = (this.groupPosition += 10) % 200 + 200;
-    group.position(this.groupPosition, this.groupPosition);
-    group.resize(200, 200);
-    group.attr('label/text', `Group ${++this.groupCount}`);
 
-    const removeButton = new elementTools.Remove();
-    const elementToolsView = new dia.ToolsView({
-      tools: [removeButton]
-    });
-
-    this.graph.addCell(group);
-    group.findView(this.paper).addTools(elementToolsView);
-  }
-
-  addCollapse() {
-    const collapse = new Collapse();
-    this.collapsePosition = (this.collapsePosition += 10) % 300 + 300;
-    collapse.position(this.collapsePosition, this.collapsePosition);
-    collapse.resize(200, 200);
-    collapse.attr({
-      headerText: {
-        text: `Collapse ${++this.collapseCount}`,
+    const group = new Group({
+      position: { x: this.groupPosition, y: this.groupPosition },
+      attrs: {
+        label: {
+          text: `Group ${++this.groupCount}`
+        }
       }
     });
 
-    const removeButton = new elementTools.Remove();
-    const elementToolsView = new dia.ToolsView({
-      tools: [removeButton]
+    this.graph.addCell(group);
+  }
+
+  addCollapse() {
+    this.collapsePosition = (this.collapsePosition += 10) % 300 + 300;
+
+    const collapse = new Collapse({
+      position: { x: this.collapsePosition, y: this.collapsePosition },
+      attrs: {
+        headerLabel: {
+          text: `Collapse ${++this.collapseCount}`,
+        },
+      }
     });
+    collapse.toggle(false);
 
     this.graph.addCell(collapse);
-    collapse.findView(this.paper).addTools(elementToolsView);
-    (collapse as any).toggle(false);
   }
 
   addLazyLoadCollapse() {
@@ -150,7 +151,7 @@ export class EditorComponent implements OnInit {
       position: { x: this.collapsePosition, y: this.collapsePosition },
       size: { width: 200, height: 200 },
       attrs: {
-        headerText: {
+        headerLabel: {
           text: `Collapse(Lazy) ${++this.collapseCount}`,
         }
       }
@@ -178,14 +179,8 @@ export class EditorComponent implements OnInit {
       collapse.embed(nodeList);
       collapse.fitEmbeds({ padding: { left: 10, top: 34, right: 10, bottom: 10 } });
     });
-
-    const removeButton = new elementTools.Remove();
-    const elementToolsView = new dia.ToolsView({
-      tools: [removeButton]
-    });
+    collapse.toggle(true);
 
     this.graph.addCell(collapse);
-    collapse.findView(this.paper).addTools(elementToolsView);
-    (collapse as any).toggle(true);
   }
 }
