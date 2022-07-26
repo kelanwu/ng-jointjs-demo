@@ -1,6 +1,6 @@
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
-import { dia, elementTools, shapes } from 'jointjs';
-import { concatMap, distinct, filter, firstValueFrom, from, of, timer } from 'rxjs';
+import { dia, elementTools, shapes, util } from 'jointjs';
+import { concatMap, distinct, filter, firstValueFrom, from, timer } from 'rxjs';
 
 import { Collapse, Group } from '../../shapes';
 import { Selection } from '../../ui';
@@ -42,18 +42,18 @@ export class EditorComponent implements OnInit {
         // Prevent Link to Link connections
         if (cellViewS.model.isLink() || cellViewT.model.isLink()) return false;
 
-        // Prevent loop linking
+        // Prevent loop
         if (cellViewS === cellViewT || magnetS === magnetT) return false;
 
-        // Limit 1 link between two nodes
-        const links = this.graph.getConnectedLinks(cellViewS.model).filter(link => link.id !== linkView.model.id);
-        let linkCount = 0;
-        for (const link of links) {
-          if ((link.getSourceCell()?.id === cellViewS.model.id && link.getTargetCell()?.id === cellViewT.model.id) ||
-            (link.getTargetCell()?.id === cellViewS.model.id && link.getSourceCell()?.id === cellViewT.model.id)) {
-            ++linkCount;
-          }
-        }
+        // Limit 1 link between two elements
+        const linkCount = this.graph.getConnectedLinks(cellViewS.model)
+          .filter(link => link.id !== linkView.model.id)
+          .reduce((pre, cur) => {
+            return pre + util.intersection(
+              [cur.getSourceCell()?.id, cur.getTargetCell()?.id],
+              [cellViewS.model.id, cellViewT.model.id]
+            ).length === 2 ? 1 : 0;
+          }, 0);
         if (linkCount > 0) {
           return false;
         }
@@ -63,7 +63,6 @@ export class EditorComponent implements OnInit {
       },
       // Embedding
       embeddingMode: true,
-      frontParentOnly: false,
       validateEmbedding: function (childView, parentView) {
         const parentType = parentView.model.get('type');
         const childType = childView.model.get('type');
@@ -71,21 +70,17 @@ export class EditorComponent implements OnInit {
         if (parentType === Collapse.type && childType === 'standard.Rectangle') return true;
         return false;
       },
-      viewport: function (view) {
+      viewport: (view) => {
         const model: dia.Cell = view.model;
 
-        // Hide elements and links that are descendants of a collapsed collapse
-        if (Collapse.isDescendantOfCollapsed(model)) {
-          return false;
-        }
+        // Hide element or link that is descendant of a collapsed collapse
+        if (Collapse.isDescendantOfCollapsedCollapse(model)) return false;
 
         if (model.isLink()) {
           const link = model as dia.Link;
           const endCells = [link.getSourceCell(), link.getTargetCell()];
-          // Hide links with at least one end cell that is descendant of a collapsed collapse
-          if (endCells.some(Collapse.isDescendantOfCollapsed)) {
-            return false;
-          }
+          // Hide link with at least one end that is descendant of a collapsed collapse
+          if (endCells.some(Collapse.isDescendantOfCollapsedCollapse)) return false;
         }
 
         return true;
@@ -114,31 +109,32 @@ export class EditorComponent implements OnInit {
         const collapse = view.model as Collapse;
         collapse.toggle();
         if (collapse.isCollapsed()) {
-          // Add a temporary link between "connected but not embedded" node and the collapsed group
+          // Temporarily connect unembedded elements
+          // (that are connected to the embedded elements but not in any collapsed collapse) to the collapsed collapse.
+          // Original links are hidden by the `viewport` callback of `paper`.
           from(collapse.getEmbeddedCells()).pipe(
             filter(cell => cell.isElement()),
             concatMap(element => this.graph.getConnectedLinks(element).filter(link => !link.isEmbedded())),
-            concatMap(unembeddedLink => of(unembeddedLink.getSourceCell(), unembeddedLink.getTargetCell())),
-            filter(cell => cell !== null && !cell.isEmbeddedIn(collapse)),
+            concatMap(unembeddedLink => [unembeddedLink.getSourceCell(), unembeddedLink.getTargetCell()]),
+            filter(cell => cell !== null && !Collapse.isDescendantOfCollapsedCollapse(cell)),
             distinct(),
-          ).subscribe(cell => {
+          ).subscribe((cell) => {
+            console.log(cell);
             if (!cell) return;
             const link = new shapes.standard.Link({
               source: cell,
               target: collapse,
-              _tmp_for_collapsed: true,
+              _temp_for_collapsed: true,
               attrs: {
                 line: {
                   stroke: 'gray',
-                  strokeWidth: 1,
+                  strokeWidth: 2,
                   strokeDasharray: '4',
                   sourceMarker: {
-                    stroke: 'transparent',
-                    fill: 'transparent'
+                    display: 'none',
                   },
                   targetMarker: {
-                    stroke: 'transparent',
-                    fill: 'transparent'
+                    display: 'none',
                   },
                 },
               }
@@ -147,7 +143,7 @@ export class EditorComponent implements OnInit {
           });
         } else {
           this.graph.getConnectedLinks(collapse)
-            .filter(link => link.prop('_tmp_for_collapsed'))
+            .filter(link => link.prop('_temp_for_collapsed'))
             .forEach(link => link.remove());
         }
       }

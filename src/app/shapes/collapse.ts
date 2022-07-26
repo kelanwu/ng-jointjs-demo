@@ -120,9 +120,9 @@ export class Collapse extends dia.Element {
     this.set('collapsed', collapsed);
   }
 
-  static isDescendantOfCollapsed(model: dia.Cell | null) {
-    if (model?.getAncestors().some((ancestor) => ancestor.get('type') === Collapse.type
-      && (ancestor as Collapse).isCollapsed())) {
+  static isDescendantOfCollapsedCollapse(cell: dia.Cell | null) {
+    if (cell?.getAncestors()
+      .some(ancestor => ancestor.get('type') === Collapse.type && (ancestor as Collapse).isCollapsed())) {
       return true;
     }
     return false;
