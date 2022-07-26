@@ -119,6 +119,14 @@ export class Collapse extends dia.Element {
     this.attr('buttonIcon/d', buttonD);
     this.set('collapsed', collapsed);
   }
+
+  static isDescendantOfCollapsed(model: dia.Cell | null) {
+    if (model?.getAncestors().some((ancestor) => ancestor.get('type') === Collapse.type
+      && (ancestor as Collapse).isCollapsed())) {
+      return true;
+    }
+    return false;
+  }
 }
 
 Object.assign(shapes, {

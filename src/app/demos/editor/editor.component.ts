@@ -1,7 +1,7 @@
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
-
 import { dia, elementTools, shapes } from 'jointjs';
-import { firstValueFrom, timer } from 'rxjs';
+import { concatMap, distinct, filter, firstValueFrom, from, of, timer } from 'rxjs';
+
 import { Collapse, Group } from '../../shapes';
 import { Selection } from '../../ui';
 
@@ -37,8 +37,30 @@ export class EditorComponent implements OnInit {
       gridSize: 1,
       model: this.graph,
       async: true,
-      multiLinks: false,
-      // defaultLink: new Link(),
+      linkPinning: false,
+      validateConnection: (cellViewS, magnetS, cellViewT, magnetT, end, linkView) => {
+        // Prevent Link to Link connections
+        if (cellViewS.model.isLink() || cellViewT.model.isLink()) return false;
+
+        // Prevent loop linking
+        if (cellViewS === cellViewT || magnetS === magnetT) return false;
+
+        // Limit 1 link between two nodes
+        const links = this.graph.getConnectedLinks(cellViewS.model).filter(link => link.id !== linkView.model.id);
+        let linkCount = 0;
+        for (const link of links) {
+          if ((link.getSourceCell()?.id === cellViewS.model.id && link.getTargetCell()?.id === cellViewT.model.id) ||
+            (link.getTargetCell()?.id === cellViewS.model.id && link.getSourceCell()?.id === cellViewT.model.id)) {
+            ++linkCount;
+          }
+        }
+        if (linkCount > 0) {
+          return false;
+        }
+
+        // Allow all other connections
+        return true;
+      },
       // Embedding
       embeddingMode: true,
       frontParentOnly: false,
@@ -49,13 +71,21 @@ export class EditorComponent implements OnInit {
         if (parentType === Collapse.type && childType === 'standard.Rectangle') return true;
         return false;
       },
-      // a callback function that is used to determine whether a given view should be shown in an async paper
       viewport: function (view) {
         const model: dia.Cell = view.model;
 
-        if (model.getAncestors().some((ancestor) => ancestor.get('type') === Collapse.type
-          && (ancestor as Collapse).isCollapsed())) {
+        // Hide elements and links that are descendants of a collapsed collapse
+        if (Collapse.isDescendantOfCollapsed(model)) {
           return false;
+        }
+
+        if (model.isLink()) {
+          const link = model as dia.Link;
+          const endCells = [link.getSourceCell(), link.getTargetCell()];
+          // Hide links with at least one end cell that is descendant of a collapsed collapse
+          if (endCells.some(Collapse.isDescendantOfCollapsed)) {
+            return false;
+          }
         }
 
         return true;
@@ -81,7 +111,45 @@ export class EditorComponent implements OnInit {
     }).on('element:button:pointerclick', (view: dia.CellView) => {
       const type = view.model.get('type');
       if (type === Collapse.type) {
-        (view.model as Collapse).toggle();
+        const collapse = view.model as Collapse;
+        collapse.toggle();
+        if (collapse.isCollapsed()) {
+          // Add a temporary link between "connected but not embedded" node and the collapsed group
+          from(collapse.getEmbeddedCells()).pipe(
+            filter(cell => cell.isElement()),
+            concatMap(element => this.graph.getConnectedLinks(element).filter(link => !link.isEmbedded())),
+            concatMap(unembeddedLink => of(unembeddedLink.getSourceCell(), unembeddedLink.getTargetCell())),
+            filter(cell => cell !== null && !cell.isEmbeddedIn(collapse)),
+            distinct(),
+          ).subscribe(cell => {
+            if (!cell) return;
+            const link = new shapes.standard.Link({
+              source: cell,
+              target: collapse,
+              _tmp_for_collapsed: true,
+              attrs: {
+                line: {
+                  stroke: 'gray',
+                  strokeWidth: 1,
+                  strokeDasharray: '4',
+                  sourceMarker: {
+                    stroke: 'transparent',
+                    fill: 'transparent'
+                  },
+                  targetMarker: {
+                    stroke: 'transparent',
+                    fill: 'transparent'
+                  },
+                },
+              }
+            });
+            this.graph.addCell(link);
+          });
+        } else {
+          this.graph.getConnectedLinks(collapse)
+            .filter(link => link.prop('_tmp_for_collapsed'))
+            .forEach(link => link.remove());
+        }
       }
     });
 
