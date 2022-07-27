@@ -109,17 +109,16 @@ export class EditorComponent implements OnInit {
         const collapse = view.model as Collapse;
         collapse.toggle();
         if (collapse.isCollapsed()) {
-          // Temporarily connect unembedded elements
-          // (that are connected to the embedded elements but not in any collapsed collapse) to the collapsed collapse.
-          // Original links are hidden by the `viewport` callback of `paper`.
+          // If `collapse` is collapsed, temporarily connect elements that are connected to any embedded element of `collapse`
+          // but are not embedded in `collapse` to `collapse`.
+          // Links with one end that belongs to a collapsed collapse are hidden by `viewport` callback of `paper`.
           from(collapse.getEmbeddedCells()).pipe(
             filter(cell => cell.isElement()),
             concatMap(element => this.graph.getConnectedLinks(element).filter(link => !link.isEmbedded())),
             concatMap(unembeddedLink => [unembeddedLink.getSourceCell(), unembeddedLink.getTargetCell()]),
-            filter(cell => cell !== null && !Collapse.isDescendantOfCollapsedCollapse(cell)),
+            filter(cell => cell !== null && !cell.isEmbeddedIn(collapse)),
             distinct(),
           ).subscribe((cell) => {
-            console.log(cell);
             if (!cell) return;
             const link = new shapes.standard.Link({
               source: cell,
